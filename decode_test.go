@@ -34,6 +34,17 @@ func TestDecoder(t *testing.T) {
 		eof    bool
 	}{
 		{
+			// A UTF-8 BOM at the start of the stream is an encoding signature,
+			// not content, so the first key is "v" and not "\ufeffv" (#906).
+			source: "\ufeffv: hi\n",
+			value:  map[string]string{"v": "hi"},
+		},
+		{
+			// A BOM that is not at the start of the stream stays content.
+			source: "v: \"x\ufeffy\"\n",
+			value:  map[string]string{"v": "x\ufeffy"},
+		},
+		{
 			source: "v: hi\n",
 			value:  map[string]string{"v": "hi"},
 		},
