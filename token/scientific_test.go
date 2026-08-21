@@ -3,7 +3,7 @@ package token
 import "testing"
 
 // Regression test for goccy/go-yaml#916: scientific-notation numbers without a
-// mantissa dot (e.g. "1e+20") must be recognised as floats so that a float64
+// mantissa dot (e.g. "1e+20") must be recognized as floats so that a float64
 // survives an Unmarshal -> Marshal -> Unmarshal roundtrip instead of decoding
 // back to a string.
 func TestToNumberScientificNotation(t *testing.T) {
@@ -34,7 +34,7 @@ func TestToNumberScientificNotation(t *testing.T) {
 	}
 }
 
-// stripSignAndUnderscore mirrors the normalisation toNumber applies before the
+// stripSignAndUnderscore mirrors the normalization toNumber applies before the
 // type switch, so the helper is exercised on the same input shape.
 func stripSignAndUnderscore(s string) string {
 	out := make([]byte, 0, len(s))
