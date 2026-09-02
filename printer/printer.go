@@ -102,52 +102,41 @@ func (p *Printer) PrintTokens(tokens token.Tokens) string {
 			p.LineNumberFormat = defaultLineNumberFormat
 		}
 	}
-	texts := []*strings.Builder{}
+	var out strings.Builder
 	lineNumber := tokens[0].Position.Line
+	started := false
+	startLine := func() {
+		if started {
+			out.WriteString("\n")
+		}
+		if p.LineNumber {
+			out.WriteString(p.LineNumberFormat(lineNumber))
+		}
+		started = true
+		lineNumber++
+	}
 	for _, tk := range tokens {
 		lines := strings.Split(tk.Origin, "\n")
 		prop := p.property(tk)
-		header := ""
-		if p.LineNumber {
-			header = p.LineNumberFormat(lineNumber)
-		}
-		newLine := func(s string) {
-			var b strings.Builder
-			b.WriteString(s)
-			texts = append(texts, &b)
-			lineNumber++
-		}
 		if len(lines) == 1 {
 			line := prop.Prefix + lines[0] + prop.Suffix
-			if len(texts) == 0 {
-				newLine(header + line)
-			} else {
-				texts[len(texts)-1].WriteString(line)
+			if !started {
+				startLine()
 			}
+			out.WriteString(line)
 		} else {
 			for idx, src := range lines {
-				if p.LineNumber {
-					header = p.LineNumberFormat(lineNumber)
-				}
 				line := prop.Prefix + src + prop.Suffix
 				if idx == 0 {
-					if len(texts) == 0 {
-						newLine(header + line)
-					} else {
-						texts[len(texts)-1].WriteString(line)
+					if !started {
+						startLine()
 					}
 				} else {
-					newLine(header + line)
+					startLine()
 				}
+				out.WriteString(line)
 			}
 		}
-	}
-	var out strings.Builder
-	for i, b := range texts {
-		if i > 0 {
-			out.WriteString("\n")
-		}
-		out.WriteString(b.String())
 	}
 	return out.String()
 }
