@@ -102,7 +102,7 @@ func (p *Printer) PrintTokens(tokens token.Tokens) string {
 			p.LineNumberFormat = defaultLineNumberFormat
 		}
 	}
-	texts := []string{}
+	texts := []*strings.Builder{}
 	lineNumber := tokens[0].Position.Line
 	for _, tk := range tokens {
 		lines := strings.Split(tk.Origin, "\n")
@@ -111,14 +111,18 @@ func (p *Printer) PrintTokens(tokens token.Tokens) string {
 		if p.LineNumber {
 			header = p.LineNumberFormat(lineNumber)
 		}
+		newLine := func(s string) {
+			var b strings.Builder
+			b.WriteString(s)
+			texts = append(texts, &b)
+			lineNumber++
+		}
 		if len(lines) == 1 {
 			line := prop.Prefix + lines[0] + prop.Suffix
 			if len(texts) == 0 {
-				texts = append(texts, header+line)
-				lineNumber++
+				newLine(header + line)
 			} else {
-				text := texts[len(texts)-1]
-				texts[len(texts)-1] = text + line
+				texts[len(texts)-1].WriteString(line)
 			}
 		} else {
 			for idx, src := range lines {
@@ -128,20 +132,24 @@ func (p *Printer) PrintTokens(tokens token.Tokens) string {
 				line := prop.Prefix + src + prop.Suffix
 				if idx == 0 {
 					if len(texts) == 0 {
-						texts = append(texts, header+line)
-						lineNumber++
+						newLine(header + line)
 					} else {
-						text := texts[len(texts)-1]
-						texts[len(texts)-1] = text + line
+						texts[len(texts)-1].WriteString(line)
 					}
 				} else {
-					texts = append(texts, fmt.Sprintf("%s%s", header, line))
-					lineNumber++
+					newLine(header + line)
 				}
 			}
 		}
 	}
-	return strings.Join(texts, "\n")
+	var out strings.Builder
+	for i, b := range texts {
+		if i > 0 {
+			out.WriteString("\n")
+		}
+		out.WriteString(b.String())
+	}
+	return out.String()
 }
 
 // PrintNode create text from ast.Node
